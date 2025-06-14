@@ -13,6 +13,7 @@
 
 ## 🧠 Project Structure
 
+```bash
 app/
 │
 ├── main.py # Entry point
@@ -25,6 +26,7 @@ app/
 ├── docker-compose.yml
 ├── requirements.txt
 └── .env
+```
 
 ---
 
@@ -38,6 +40,5 @@ docker-compose -f docker-compose.yml up  -d --build
 
 ```env
 DATABASE_URL=mysql+pymysql://<username>:<password>@<service_name>/<database_name>
-JWT_SECRET=your_jwt_secret_key
-
+JWT_SECRET_KEY=your_jwt_secret_key
 ```
