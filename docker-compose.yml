@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=mysql+pymysql://abdoyasser:abdoyasser@mysql/fastapi
+      - PYTHONPATH=/app
+    volumes:
+      -  ./app:/app:delegated
+    command: sh -c "python db/db_connection.py && uvicorn main:app --host 0.0.0.0 --port 80 --reload"
+
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: abdoyasser
+      MYSQL_DATABASE: fastapi
+      MYSQL_USER: abdoyasser 
+      MYSQL_PASSWORD: abdoyasser 
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:

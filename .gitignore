@@ -1,0 +1,25 @@
+# 🐍 Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# ⚙️ Virtual Environment
+.venv/
+venv/
+
+# 📦 Environment Variables
+.env
+
+# 📁 VS Code settings (optional)
+.vscode/
+
+# 🐳 Docker stuff (optional)
+*.log
+*.pid
+
+# 📦 Build
+build/
+dist/
+*.egg-info/
