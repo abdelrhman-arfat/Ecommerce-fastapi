@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Request
 from controller.user_controller import router as user_router
+from utils.custom_http_exception import custom_http_exception
 
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from fastapi.encoders import jsonable_encoder
 
 app = FastAPI()
 app.include_router(user_router)
@@ -28,4 +28,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "message": "Validation error",
             "errors": custom_errors
         }
+    )
+
+
+@app.exception_handler(custom_http_exception)
+async def custom_exception_handler(request: Request, exc: custom_http_exception):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail
     )

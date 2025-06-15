@@ -119,6 +119,6 @@ class User_Service:
             session.refresh(user)
             userResponse = User_Service.user_public_information(user)
             returnMessage = User_Service.return_code_data_message(
-                "Registration Successfully", userResponse, 200
+                "Registration Successfully", userResponse, 201
             )
             return returnMessage
