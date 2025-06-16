@@ -4,31 +4,31 @@ from service.response_service import response_service
 from utils.Constants import Constants
 from utils.try_catch_handler import try_catch_handler
 from utils.jwt import Jwt
-from utils.Date_token_handler import date_time_handler
+from utils.date_time_handler import date_time_handler
 from middleware.auth_middleware import auth_middleware
 router = APIRouter(
     prefix="/users",
     tags=["users"],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"message": "Not found"}},
 )
 
 # ------------------------------- Admin Operations ---------------------------------
 
 
 @router.get("/")
-async def read_users(_=Depends(auth_middleware.is_login)):
+async def read_users(_=Depends(auth_middleware.is_admin)):
     users = try_catch_handler(lambda: User_Service.get_all_users())
     return response_service.get_success_response(data=users, message="users fetched successfully")
 
 
 @router.get("/active")
-async def read_active_users(_=Depends(auth_middleware.is_login)):
+async def read_active_users(_=Depends(auth_middleware.is_admin)):
     users = try_catch_handler(lambda: User_Service.get_all_active_users())
     return response_service.get_success_response(data=users, message="users fetched successfully")
 
 
 @router.get("/non-active")
-async def read_non_active_users(_=Depends(auth_middleware.is_login)):
+async def read_non_active_users(_=Depends(auth_middleware.is_admin)):
     users = try_catch_handler(lambda: User_Service.get_all_non_active_users())
     return response_service.get_success_response(data=users, message="users fetched successfully")
 
@@ -59,7 +59,7 @@ async def register_user(UserRegister: VRegisterUser):
     if user is None:
         return response_service.get_error_response(message=message, status_code=code)
 
-    response = await set_tokens(user=user, message=message)
+    response = set_tokens(user=user, message=message)
     return response
 
 
@@ -72,6 +72,23 @@ async def log_out(request: Request, response: Response, _=Depends(auth_middlewar
         message="Logged out successfully"
     )
 
+
+@router.delete("/delete-my-account")
+async def delete_my_account(request: Request, response: Response, _=Depends(auth_middleware.is_login)):
+    user = request.state.user
+    if user is None:
+        return response_service.get_error_response(data=None, message="You are not logged in", status_code=401)
+    data = User_Service.delete_my_account(email=user["email"])
+    message = data["message"]
+    code = data["code"]
+    if code == 200:
+        response = response_service.delete_response_cookies(
+            response=response,
+            keys=[Constants.token, Constants.refresh_token],
+            message="Account deleted successfully"
+        )
+
+    return response_service.return_response(data=None, message=message, status_code=code)
 # --------------------------------------------------------------------------
 
 #  ------------------------------ Helper Functions -------------------------

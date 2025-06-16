@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from utils.custom_http_exception import custom_http_exception
 
 """ 
     When use this func return it like this:
@@ -13,5 +13,4 @@ def try_catch_handler(func):
     try:
         return func()
     except Exception as e:
-        print("error ❌‼️ -->", e)
-        raise HTTPException(status_code=400, detail=str(e))
+        raise custom_http_exception(data=None, message=str(e), status_code=400)

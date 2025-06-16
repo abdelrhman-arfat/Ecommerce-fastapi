@@ -1,9 +1,9 @@
-from sqlmodel import Session, select, column
+from sqlmodel import Session, select
 from db.db_connection import engine
 from pydantic import BaseModel
 from models.models import User
 from utils.Hasher import Hasher
-from utils.to_JSON import to_JSON
+from utils.to_JSON import to_JSON, return_code_data_message
 
 
 class VLoginUser(BaseModel):
@@ -26,13 +26,6 @@ BASE_USER_COLUMNS = (User.id, User.name, User.email, User.role)
 
 
 class User_Service:
-    @staticmethod
-    def return_code_data_message(message, data=None, code=400):
-        return {
-            "message": message,
-            "data": data,
-            "code": code
-        }
 
     @staticmethod
     def user_exists(email, session):
@@ -79,19 +72,19 @@ class User_Service:
         with Session(engine) as session:
             user: User = User_Service.user_exists(UserLogin.email, session)
             if user is None:
-                returnedMessage = User_Service.return_code_data_message(
+                returnedMessage = return_code_data_message(
                     "User not found", None, 404)
                 return returnedMessage
 
             is_password_match = Hasher.verify_password(UserLogin.password,
                                                        user.password)
             if not is_password_match:
-                returnedMessage = User_Service.return_code_data_message(
+                returnedMessage = return_code_data_message(
                     "Invalid Credentials", None, 400
                 )
                 return returnedMessage
             userResponse = User_Service.user_public_information(user)
-            returnedMessage = User_Service.return_code_data_message(
+            returnedMessage = return_code_data_message(
                 "Login Successfully", userResponse, 200
             )
             return returnedMessage
@@ -101,7 +94,7 @@ class User_Service:
         with Session(engine) as session:
             user = User_Service.user_exists(UserRegister.email, session)
             if user is not None:
-                returnedMessage = User_Service.return_code_data_message(
+                returnedMessage = return_code_data_message(
                     "User already exists Please try another email", None, 400
                 )
                 return returnedMessage
@@ -118,7 +111,32 @@ class User_Service:
             session.commit()
             session.refresh(user)
             userResponse = User_Service.user_public_information(user)
-            returnMessage = User_Service.return_code_data_message(
+            returnMessage = return_code_data_message(
                 "Registration Successfully", userResponse, 201
             )
             return returnMessage
+
+    @staticmethod
+    def delete_my_account(email: str):
+        with Session(engine) as session:
+            user = User_Service.user_exists(email, session)
+            if user is None:
+                returnedMessage = return_code_data_message(
+                    "User not found", None, 404
+                )
+                return returnedMessage
+            session.delete(user)
+            session.commit()
+            returnedMessage = return_code_data_message(
+                "User Deleted Successfully", None, 200
+            )
+            return returnedMessage
+
+    @staticmethod
+    def get_user_by_id(user_id: int):
+        with Session(engine) as session:
+            stmt = select(User).where(User.id == user_id)
+            result = session.exec(stmt).first()
+            return to_JSON(result, exclude=["password"])
+
+        return

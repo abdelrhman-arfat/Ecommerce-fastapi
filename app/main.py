@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from controller.user_controller import router as user_router
+from controller.product_controller import router as product_router
 from utils.custom_http_exception import custom_http_exception
 
 from fastapi.responses import JSONResponse
@@ -7,27 +8,29 @@ from fastapi.exceptions import RequestValidationError
 
 app = FastAPI()
 app.include_router(user_router)
+app.include_router(product_router)
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
-    custom_errors = []
-
+    wantedMessage = ""
     for err in errors:
-        custom_errors.append({
-            "field": ".".join(map(str, err["loc"])),
-            "message": err["msg"],
-            "type": err["type"]
-        })
+        field = err["loc"][-1]
+        msg = err["msg"]
+
+        wantedMessage += f"{field}, " + msg
+
+    if wantedMessage.endswith(", "):
+        wantedMessage = wantedMessage[:-2] + " ; "
 
     return JSONResponse(
         status_code=422,
         content={
             "status": "fail",
-            "message": "Validation error",
-            "errors": custom_errors
-        }
+            "message": "Validation error " + wantedMessage,
+            "data": None
+        },
     )
 
 

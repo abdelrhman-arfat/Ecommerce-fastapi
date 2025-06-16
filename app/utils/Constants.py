@@ -11,3 +11,4 @@ class Constants:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     token = "token"
     refresh_token = "refresh_token"
+    user_roles = {"user": "user", "admin": "admin"}
